@@ -1,27 +1,11 @@
-FROM python:3.11
+# Use an official Python runtime as a parent image
+FROM python:3.11-slim
 
+# Set the working directory in the container
 WORKDIR /app
-
-RUN pip install poetry
-RUN poetry config installer.max-workers 10
-
-ARG APP_VARIANT=contextful
-ENV POETRY_FLAGS="--with examples --no-interaction --no-ansi"
-
-COPY ./pyproject.toml ./poetry.lock ./
-RUN if [ "${APP_VARIANT}" = "local" ] ; then \
-    poetry install ${POETRY_FLAGS} --no-root --extras local ; \
-    else \
-    poetry install ${POETRY_FLAGS} --no-root ; \
-    fi
-
+# Copy the dependencies file to the working directory
+COPY requirements.txt requirements.txt
+# Install any dependencies
+RUN pip install --upgrade -r requirements.txt
+# Copy the content of the local repo
 COPY . .
-RUN if [ "${APP_VARIANT}" = "local" ] ; then \
-    poetry install ${POETRY_FLAGS} --extras local ; \
-    else \
-    poetry install ${POETRY_FLAGS} ; \
-    fi
-
-EXPOSE 8080
-
-ENTRYPOINT poetry run ./run_examples.py $APP_VARIANT
